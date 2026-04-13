@@ -71,3 +71,8 @@ def crear_estudiante(
 @app.put("/usuario/{id}")
 def update_usuario(id: int, usuarioActualizacion: usuario):
     return {"usuario_telefono": usuarioActualizacion.telefono, "id": id}
+
+
+@app.delete("/usuario/{id}")
+def delete_usuario(id: int):
+    return {"message": "usuario eliminado"}
