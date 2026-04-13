@@ -1,6 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
-from typing import Annotated
+from typing import Annotated, List, Optional
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from fastapi.security import OAuth2PasswordBearer
 
@@ -10,9 +10,10 @@ app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-class estudianteModelo(SQLModel, table=True):
+class usuarioModelo(SQLModel, table=True):
     id: int = Field(primary_key=True)
     nombre: str = Field(max_length=30)
+    telefono: int Field(max_length=10)
 
 
 sqlite_file_name = "database.db"
@@ -33,42 +34,38 @@ def get_session():
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
-class User(BaseModel, table=True):
+
+
+class usuario(BaseModel, table=True):
     id: int = Field(primary_key=True)
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
+    nombre: str
+    telefono: int
     
-
-
-class estudiante(BaseModel):
-    telefono: str
-    price: float
-    is_offer: bool | None = None
-
+                
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
-@app.post("/estudiantes")
+
+@app.post("/usuarios")
 def crear_estudiante(
-    estudiante: estudianteModelo,
+    usuario: usuarioModelo,
     session: SessionDep,
     token: Annotated[str, Depends(oauth2_scheme)]
-)-> estudianteModelo:
-    session.add(estudiante)
+)-> usuarioModelo:
+    session.add(usuario)
     session.commit()
-    session.refresh(estudiante)
-    return estudiante
+    session.refresh(usuario)
+    return usuario
 
-@app.get("/estudiantes")
+
+@app.get("/usuarios")
 def read_root(
     session: SessionDep,
     token: Annotated[str, Depends(oauth2_scheme)]
 ):
-    estudiantes= session.exec(select(estudianteModelo)).all()
-    return estudiantes
+    estudiantes= session.exec(select(usuarioModelo)).all()
+    return usuarios
 
 
 @app.get("/items/{item_id}")
@@ -77,5 +74,5 @@ def read_item(item_id: int, q: str | None = None):
 
 
 @app.put("/items/{item_id}")
-def update_item(item_id: int, estudianteActualizacion: estudiante):
-    return {"estudiante_telefono": estudianteActualizacion.telefono, "item_id": item_id}
+def update_item(item_id: int, usuarioActualizacion: usuario):
+    return {"estudiante_telefono": usuarioActualizacion.telefono, "item_id": item_id}
