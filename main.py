@@ -47,6 +47,15 @@ def on_startup():
     create_db_and_tables()
 
 
+@app.get("/usuarios")
+def read_root(
+    session: SessionDep,
+    token: Annotated[str, Depends(oauth2_scheme)]
+):
+    estudiantes= session.exec(select(usuarioModelo)).all()
+    return usuarios
+
+
 @app.post("/usuarios")
 def crear_estudiante(
     usuario: usuarioModelo,
@@ -59,20 +68,6 @@ def crear_estudiante(
     return usuario
 
 
-@app.get("/usuarios")
-def read_root(
-    session: SessionDep,
-    token: Annotated[str, Depends(oauth2_scheme)]
-):
-    estudiantes= session.exec(select(usuarioModelo)).all()
-    return usuarios
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, usuarioActualizacion: usuario):
-    return {"estudiante_telefono": usuarioActualizacion.telefono, "item_id": item_id}
+@app.put("/usuario/{id}")
+def update_usuario(id: int, usuarioActualizacion: usuario):
+    return {"usuario_telefono": usuarioActualizacion.telefono, "id": id}
