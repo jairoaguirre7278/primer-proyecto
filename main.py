@@ -8,7 +8,6 @@ from fastapi.security import OAuth2PasswordBearer
 app = FastAPI()
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class usuarioModelo(SQLModel, table=True):
     id: int = Field(primary_key=True)
@@ -50,29 +49,50 @@ def on_startup():
 @app.get("/usuarios")
 def read_root(
     session: SessionDep,
-    token: Annotated[str, Depends(oauth2_scheme)]
 ):
-    estudiantes= session.exec(select(usuarioModelo)).all()
+    usuario = session.exec(select(usuarioModelo)).all()
     return usuarios
+
+
+@app.get("/usuarios/{id}")
+def read_root(
+    session: SessionDep,
+):
+    usuario =  session.get(nombre, id)
+    return usuario
 
 
 @app.post("/usuarios")
 def crear_estudiante(
     usuario: usuarioModelo,
     session: SessionDep,
-    token: Annotated[str, Depends(oauth2_scheme)]
 )-> usuarioModelo:
     session.add(usuario)
     session.commit()
-    session.refresh(usuario)
-    return usuario
+    session.refresh(db_usuario)
+    return db_usuario
 
 
 @app.put("/usuario/{id}")
 def update_usuario(id: int, usuarioActualizacion: usuario):
-    return {"usuario_telefono": usuarioActualizacion.telefono, "id": id}
+  item_id: int,
+    item: ItemCreate,
+    session: Session = Depends(get_session)
+):
+    db_item = session.get(Item, item_id)
+    if not db_item:
+        raise HTTPException(status_code=404, detail="No encontrado")
+    data = usuario.model_dump(exclude_unset=True)
+    db_item.sqlmodel_update(data)
+    session.commit()
+    session.refresh(db_usuario)
+    return db_usuario
 
 
-@app.delete("/usuario/{id}")
-def delete_usuario(id: int):
-    return {"message": "usuario eliminado"}
+app.delete("/usuario/{id}", status_code=204)
+def eliminar_item(id: int, session: Session = Depends(get_session)):
+    db_id = session.get(usuario, id)
+    if not db_id:
+        raise HTTPException(status_code=404, detail="No encontrado")
+    session.delete(db_usuario)
+    session.commit()
